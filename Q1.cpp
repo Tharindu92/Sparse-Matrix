@@ -14,7 +14,7 @@ int main(){
     Q1_e(n);
     for(i=0; ;i++){
         if(*(row_ptr+i) != -1){
-            printf("%d, ",&*(row_ptr+i))
+            printf("%d, ",*(row_ptr+i));
         }
         else{
             break;
