@@ -28,11 +28,12 @@ int Q1_g(int n, int col, int row, int new_val, int* val, int* col_indx, int* row
 int Q1_h(int n, int* val, int* col_indx, int* row_ptr);
 int print_Q1_h(int n, int* val, int* col_indx, int* row_ptr);
 int Q1_j(int n, int* val, int* col_indx, int* row_ptr);
+int print_Q1_j(int n, int* ans_vector);
+int Q1_k(int n, int* val, int* col_indx, int* row_ptr, int* val2, int* col_indx2, int* row_ptr2);
 int random_Number_gen();
 
 int main(){
-    int n = 6,i;
-    int col, row;
+    int n = 6;
     int value;
     /*
      * memory allocation
