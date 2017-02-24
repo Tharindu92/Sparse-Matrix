@@ -108,47 +108,76 @@ int Q1_g(int col, int row, int new_val){
     int cur_val = Q1_f(col,row);
     int nnz = row_ptr[row - 1];
     int nnz2 = row_ptr[row];
-    int index,next_val,temp_val,next_col_index,temp_col_index;
-    for(i = 0; ;i++){
-	   	if(col_indx[i] == col){
-			if(i+1 >= nnz && i+1 < nnz2){
-			val[i] = new_val;
-			return 1;
-			}
-		}else if(col_indx[i] == 0){
-			break;
-		}	
+    int index = -1,next_val,temp_val,next_col_index,temp_col_index;
+    if(new_val != 0){
+        for(i = 0; ;i++){
+            if(col_indx[i] == col){
+                if(i+1 >= nnz && i+1 < nnz2){
+                    val[i] = new_val;
+                    return 1;
+                }
+            }else if(col_indx[i] == 0){
+                break;
+            }
+        }
+
+        for(i = nnz-1; i < nnz2-1; i++){
+            if(col < col_indx[i]+1){
+                index = i;
+                break;
+            }
+        }
+        if(index == -1){
+            index = i;
+        }
+        for(i=index; ;i++){
+            if(i == index){
+                next_val = val[i];
+                next_col_index = col_indx[i];
+                val[i] = new_val;
+                col_indx[i] = col;
+            }else{
+                temp_val = val[i];
+                temp_col_index = col_indx[i];
+                if(temp_val == 0 && next_val == 0){
+                    break;
+                }
+                val[i] = next_val;
+                col_indx[i] = next_col_index;
+                next_val = temp_val;
+                next_col_index = temp_col_index;
+            }
+        }
+        for(i=row; ;i++){
+            if(row_ptr[i] != 0)
+                row_ptr[i]++;
+            else
+                break;
+        }
+    }else{
+        for(i = 0; ;i++){
+            if(col_indx[i] == col){
+                if(i+1 >= nnz && i+1 < nnz2){
+                    index = i;
+                    break;
+                }
+            }else if(col_indx[i] == 0){
+                return 2;
+            }
+        }
+        for(i=index; ;i++){
+            val[i] = val[i+1];
+            col_indx[i] = col_indx[i+1];
+            if(val[i] == 0)
+                break;
+        }
+        for(i=row; ;i++){
+            if(row_ptr[i] != 0)
+                row_ptr[i]--;
+            else
+                break;
+        }
     }
-    for(i = nnz; i < nnz2; i++){
-		if(col < col_indx[i]+1){
-			index = i; 
-			break;
-		}
-    }
-    for(i=index; ;i++){
-		if(i == index){
-			next_val = val[i];
-	   	    next_col_index = col_indx[i];
-			val[i] = new_val;
-			col_indx[i] = col;
-		}else{
-			temp_val = val[i];
-			temp_col_index = col_indx[i];
-			if(temp_val == 0 && next_val == 0){
-				break;
-			}
-			val[i] = next_val;
-			col_indx[i] = next_col_index;
-			next_val = temp_val;
-			next_col_index = temp_col_index;		
-		}
-	}
-	for(i=row; ;i++){
-		if(row_ptr[i] != 0)
-			row_ptr[i]++;
-		else
-			break;
-	}
 }
 /*
 int random_Number_gen(){
