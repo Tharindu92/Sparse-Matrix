@@ -20,20 +20,20 @@ int *ans_vector;
 /*
  * Method declaration
  */
-int Q1_d_createRandomArray(int n);
-void Q1_e(int n, int* mat, int* val, int* col_indx, int* row_ptr);
-void print_Q1_e(int n, int* val, int* col_indx, int* row_ptr);
-int Q1_f(int n, int col, int row, int* val, int* col_indx, int* row_ptr);
-int Q1_g(int n, int col, int row, int new_val, int* val, int* col_indx, int* row_ptr);
-int Q1_h(int n, int* val, int* col_indx, int* row_ptr);
-void print_Q1_h(int n, int* val, int* col_indx, int* row_ptr);
-int Q1_j(int n, int* val, int* col_indx, int* row_ptr);
-void print_Q1_j(int n, int* ans_vector);
-int Q1_k(int n, int* val, int* col_indx, int* row_ptr, int* val2, int* col_indx2, int* row_ptr2);
-int random_Number_gen();
+int createRandomArray(int n, int percentage);
+void dense_to_scr_convertion(int n, int* mat, int* val, int* col_indx, int* row_ptr);
+void print_dense_to_scr_convertion(int n, int* val, int* col_indx, int* row_ptr);
+int get_value(int n, int col, int row, int* val, int* col_indx, int* row_ptr);
+int set_value(int n, int col, int row, int new_val, int* val, int* col_indx, int* row_ptr);
+int csr_to_csc(int n, int* val, int* col_indx, int* row_ptr);
+void print_csr_to_csc(int n, int* val, int* col_indx, int* row_ptr);
+int csr_vector_mul(int n, int* val, int* col_indx, int* row_ptr);
+void print_csr_vector_mul(int n, int* ans_vector);
+int csr_csr_addition(int n, int* val, int* col_indx, int* row_ptr, int* val2, int* col_indx2, int* row_ptr2);
+int random_Number_gen(int limit);
 
 int main(){
-    int n = 6,row,col;
+    int n = 6,row,col,percentage;
     int value;
     /*
      * memory allocation
@@ -56,12 +56,12 @@ int main(){
     /*
      * Convert dense matrix to sparse matrix (Q1. e)
      */
-    Q1_e(n,mat,val,col_indx,row_ptr);
-    Q1_e(n,mat2,val2,col_indx2,row_ptr2);
+    dense_to_scr_convertion(n,mat,val,col_indx,row_ptr);
+    dense_to_scr_convertion(n,mat2,val2,col_indx2,row_ptr2);
 
     while(1){
-		print_Q1_e(n,val,col_indx,row_ptr);
-        //print_Q1_e(n,val2,col_indx2,row_ptr2);
+		print_dense_to_scr_convertion(n,val,col_indx,row_ptr);
+        //print_dense_to_scr_convertion(n,val2,col_indx2,row_ptr2);
 		printf("Enter i to read (1st row is 1) ");
 		scanf("%d",&row);
 		printf("Enter j to read (1st column is 1) ");
@@ -69,7 +69,7 @@ int main(){
 
 		//Get value of given index
 
-		value = Q1_f(n,col,row,val,col_indx,row_ptr);
+		value = get_value(n,col,row,val,col_indx,row_ptr);
 		printf("Value at (%d,%d): %d\n",row, col,value);
 
 		printf("Enter i to set (1st row is 1) ");
@@ -79,33 +79,40 @@ int main(){
 		printf("Enter new value ");
 		scanf("%d",&value);
 		//set new value to given index
-		Q1_g(n,col,row,value,val,col_indx,row_ptr);
-        //Q1_h(n);
-        //print_Q1_h(n);
-        //Q1_j(n,val,col_indx,row_ptr);
-        //print_Q1_j(n, ans_vector);
+		set_value(n,col,row,value,val,col_indx,row_ptr);
+        //csr_to_csc(n);
+        //print_csr_to_csc(n);
+        //csr_vector_mul(n,val,col_indx,row_ptr);
+        //print_csr_vector_mul(n, ans_vector);
         //break;
-        //Q1_k(n,val,col_indx,row_ptr,val2,col_indx2,row_ptr2);
+        //csr_csr_addition(n,val,col_indx,row_ptr,val2,col_indx2,row_ptr2);
         //scanf("%d",&value);
     }
 }
 
-int Q1_d_createRandomArray(int n){
+/*
+ * Answer for Q1) d.
+ */
+int createRandomArray(int n, int percentage){
     int rnd;
     int size = n*n;
     int i;
-    for(i = 0; i < size; i++){
-        rnd = rand()%100 + 1;
-        if(rnd > 90){
-            mat[i] = random_Number_gen();
-        }else{
-            mat[i] = 0;
+    int nnz = n*n * percentage / 100;
+    int row, col;
+    for(i = 0; i < nnz; ){
+        row = random_Number_gen(n);
+        col = random_Number_gen(n);
+        if(mat[row*n + col] == 0){
+            rnd = random_Number_gen(99) + 1;
+            i++;
         }
     }
     return 0;
 }
-
-void Q1_e(int n,int* mat, int* val, int* col_indx, int* row_ptr){
+/*
+ * Answer for Q1) e
+ */
+void dense_to_scr_convertion(int n,int* mat, int* val, int* col_indx, int* row_ptr){
     int i,j;
     int nnz = 0;
     for(i = 0; i < n; i++){
@@ -121,7 +128,7 @@ void Q1_e(int n,int* mat, int* val, int* col_indx, int* row_ptr){
     row_ptr[n] = nnz + 1;
 }
 
-void print_Q1_e(int n, int* val, int* col_indx, int* row_ptr){
+void print_dense_to_scr_convertion(int n, int* val, int* col_indx, int* row_ptr){
     int i;
     printf("Value    : ");
     for(i=0;i<n*n;i++){
@@ -144,7 +151,10 @@ void print_Q1_e(int n, int* val, int* col_indx, int* row_ptr){
     printf("\nDone\n");
 }
 
-int Q1_f(int n, int col, int row, int* val, int* col_indx, int* row_ptr){
+/*
+ * Answer to Q1) f
+ */
+int get_value(int n, int col, int row, int* val, int* col_indx, int* row_ptr){
     int i;
     int nnz = row_ptr[row - 1];
     int nnz2 = row_ptr[row];
@@ -158,7 +168,10 @@ int Q1_f(int n, int col, int row, int* val, int* col_indx, int* row_ptr){
     return 0;
 }
 
-int Q1_g(int n, int col, int row, int new_val, int* val, int* col_indx, int* row_ptr){
+/*
+ * Answer to Q1) g
+ */
+int set_value(int n, int col, int row, int new_val, int* val, int* col_indx, int* row_ptr){
 	int i;
     int nnz = row_ptr[row - 1];
     int nnz2 = row_ptr[row];
@@ -229,8 +242,10 @@ int Q1_g(int n, int col, int row, int new_val, int* val, int* col_indx, int* row
         }
     }
 }
-
-int Q1_h(int n, int* val, int* col_indx, int* row_ptr){
+/*
+ * Answer to Q1) h
+ */
+int csr_to_csc(int n, int* val, int* col_indx, int* row_ptr){
     int nnz=0,i,j,k;
     for(i = 0; i<n ;i++){
         col_ptr[i] = nnz+1;
@@ -252,7 +267,7 @@ int Q1_h(int n, int* val, int* col_indx, int* row_ptr){
     return 0;
 }
 
-void print_Q1_h(int n, int* val, int* col_indx, int* row_ptr){
+void print_csr_to_csc(int n, int* val, int* col_indx, int* row_ptr){
     int i;
     printf("CSR Value   : ");
     for(i=0;i<n*n;i++){
@@ -275,7 +290,10 @@ void print_Q1_h(int n, int* val, int* col_indx, int* row_ptr){
     printf("\nDone\n");
 }
 
-int Q1_j(int n, int* val, int* col_indx, int* row_ptr){
+/*
+ * Answer for Q1 j
+ */
+int csr_vector_mul(int n, int* val, int* col_indx, int* row_ptr){
     int i,j,nnz=0;
     for(i=0; i<n; i++){
         for(j = row_ptr[i]; j < row_ptr[i+1]; j++){
@@ -286,7 +304,7 @@ int Q1_j(int n, int* val, int* col_indx, int* row_ptr){
     return 0;
 }
 
-void print_Q1_j(int n, int* ans_vector) {
+void print_csr_vector_mul(int n, int* ans_vector) {
     int i;
     printf("\nMatrix Vector Multiplication : ");
     for(i=0; i<n ;i++){
@@ -295,34 +313,37 @@ void print_Q1_j(int n, int* ans_vector) {
     printf("\nDone\n");
 }
 
-int Q1_k(int n, int* val, int* col_indx, int* row_ptr, int* val2, int* col_indx2, int* row_ptr2){
+/*
+ * Answer for Q1) k
+ */
+int csr_csr_addition(int n, int* val, int* col_indx, int* row_ptr, int* val2, int* col_indx2, int* row_ptr2){
     int i, j, row1, col, value2,sum;
     for(i=0;i<n*n;i++){
         if(i == n*n || val[i] == 0)
             break;
         row1 = get_row_index(n,i,row_ptr);
         col = col_indx[i];
-        value2 = Q1_f(n,col,row1,val2,col_indx2,row_ptr2);
+        value2 = get_value(n,col,row1,val2,col_indx2,row_ptr2);
         sum = value2 + val[i];
-        Q1_g(n,col,row1,value2+val[i],val,col_indx,row_ptr);
-        Q1_g(n,col,row1,0,val2,col_indx2,row_ptr2);
+        set_value(n,col,row1,value2+val[i],val,col_indx,row_ptr);
+        set_value(n,col,row1,0,val2,col_indx2,row_ptr2);
 
     }
-    print_Q1_e(n,val,col_indx,row_ptr);
+    print_dense_to_scr_convertion(n,val,col_indx,row_ptr);
 
     if(val2[0] != 0){
         for(i=0;i<n*n;i++){
             if(i == n*n || val2[i] == 0)
                 break;
             row1 = get_row_index(n,i,row_ptr2);
-            Q1_g(n,col_indx2[i],row1,val2[i],val,col_indx,row_ptr);
-            //Q1_g(col_indx2[i],row1,0,val2,col_indx2,row_ptr2);
+            set_value(n,col_indx2[i],row1,val2[i],val,col_indx,row_ptr);
+            //set_value(col_indx2[i],row1,0,val2,col_indx2,row_ptr2);
         }
         for(i=0;i<n*n;i++){
             if(i == n*n || val2[i] == 0)
                 break;
             row1 = get_row_index(n,i,row_ptr2);
-            Q1_g(n,col_indx2[i],row1,0,val2,col_indx2,row_ptr2);
+            set_value(n,col_indx2[i],row1,0,val2,col_indx2,row_ptr2);
         }
     }
 }
@@ -335,7 +356,7 @@ int get_row_index(int n, int val_index, int* row_ptr){
     }
 }
 
-int random_Number_gen(){
+int random_Number_gen(int limit){
     srand(time(NULL));
-    return (rand()%20);
+    return (rand()%limit);
 }
