@@ -3,108 +3,188 @@
 #include <time.h>
 #include <string.h>
 
-int mat[36] = {10, 0,0,0,-2,0,3,9,0,0,0,3,0,7,8,7,0,0,3,0,8,7,5,0,0,8,0,9,9,3,0,4,0,0,2,-1};
-int mat2[36] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+int* mat;
+int* mat2;
 int* ans_mat;
 
-int* val;           int* val2;
-int* col_indx;      int* col_indx2;
-int* row_ptr;       int* row_ptr2;
+int* val;           int* val2;          int* ans_val;
+int* col_indx;      int* col_indx2;     int* ans_col_indx;
+int* row_ptr;       int* row_ptr2;      int* ans_row_ptr;
 
 int* row_indx;
 int* col_ptr;
 int* val_csc;
 
-int vector[6] = {1,1,1,1,1,1};
-int *ans_vector;
+int* vector;
+int* ans_vector_sparse;
+int* ans_vector_dense;
+
+int sample_sizes[6] = {10, 50, 100, 500, 1000, 5000};
 /*
  * Method declaration
  */
-int createRandomArray(int n, int percentage);
-void dense_to_scr_convertion(int n, int* mat, int* val, int* col_indx, int* row_ptr);
-void print_dense_to_scr_convertion(int n, int* val, int* col_indx, int* row_ptr);
+int createRandomArray(int n, int percentage, int* mat);
+void dense_to_csr_convertion(int n, int* mat, int* val, int* col_indx, int* row_ptr);
+void print_dense_to_csr_convertion(int n, int* val, int* col_indx, int* row_ptr);
 int get_value(int n, int col, int row, int* val, int* col_indx, int* row_ptr);
 int set_value(int n, int col, int row, int new_val, int* val, int* col_indx, int* row_ptr);
 int csr_to_csc(int n, int* val, int* col_indx, int* row_ptr);
 void print_csr_to_csc(int n, int* val, int* col_indx, int* row_ptr);
 int csr_vector_mul(int n, int* val, int* col_indx, int* row_ptr);
-void print_csr_vector_mul(int n, int* ans_vector);
+void print_csr_vector_mul(int n, int* ans_vector_sparse);
 int csr_csr_addition(int n, int* val, int* col_indx, int* row_ptr, int* val2, int* col_indx2, int* row_ptr2);
 int random_Number_gen(int limit);
+int get_row_index(int n, int val_index, int* row_ptr);
+void allocate_memory(int n);
+void free_memory();
+void pre_processing(int n, int percentage);
+void generate_vector(int n, int* vector);
+int mat_mat_addition(int n, int* mat, int* mat2);
+int mat_vector_mul(int n, int* mat, int* vec);
 
 int main(){
-    int n = 6,row,col,percentage;
-    int value;
+    int n = 6,row,col,percentage = 90;
+    int value, choise,samples;
+    clock_t begin, end;
     /*
-     * memory allocation
+     * Create random array with 90
      */
-    val = (int*) calloc(n * n, sizeof(int));
-    col_indx = (int*) calloc(n * n, sizeof(int));
-    row_ptr = (int*) malloc((n+1) * sizeof(int));
 
-    val2 = (int*) calloc(n * n, sizeof(int));
-    col_indx2 = (int*) calloc(n * n, sizeof(int));
-    row_ptr2 = (int*) malloc((n+1) * sizeof(int));
-
-    val_csc = (int*) calloc(n * n, sizeof(int));
-    row_indx = (int*) calloc(n * n, sizeof(int));
-    col_ptr = (int*) malloc((n+1) * sizeof(int));
-
-    ans_vector = (int*) calloc(n,  sizeof(int));
-    ans_mat = (int*) malloc(n*n*sizeof(int));
-    memcpy(ans_mat,mat,n*n*sizeof(int));
     /*
      * Convert dense matrix to sparse matrix (Q1. e)
      */
-    dense_to_scr_convertion(n,mat,val,col_indx,row_ptr);
-    dense_to_scr_convertion(n,mat2,val2,col_indx2,row_ptr2);
 
-    while(1){
-		print_dense_to_scr_convertion(n,val,col_indx,row_ptr);
-        //print_dense_to_scr_convertion(n,val2,col_indx2,row_ptr2);
-		printf("Enter i to read (1st row is 1) ");
-		scanf("%d",&row);
-		printf("Enter j to read (1st column is 1) ");
-		scanf("%d",&col);
+    printf("To run Q1. j) press 1\n");
+    printf("To run Q1. k) press 2\n");
+    printf("Press any other to run Q1. i)\n");
 
-		//Get value of given index
+    printf("\nEnter your preference");
+    scanf("%d", &choise);
 
-		value = get_value(n,col,row,val,col_indx,row_ptr);
-		printf("Value at (%d,%d): %d\n",row, col,value);
+    if(choise == 1) {
+        int i, j;
+        double tot_time_sparse = 0, tot_time_dense = 0;
+        printf("******Run Q1. j)******\n");
+        printf("Enter number of samples ");
+        scanf("%d", &samples);
+        for (i = 0; i < 6; i++) {
+            tot_time_sparse = 0;
+            tot_time_dense = 0;
+            for (j = 0; j < samples; j++) {
+                n = sample_sizes[i];
+                /*
+                 * memory allocation
+                 */
+                allocate_memory(n);
+                pre_processing(n, percentage);
+                generate_vector(n, vector);
 
-		printf("Enter i to set (1st row is 1) ");
-		scanf("%d",&row);
-		printf("Enter j to set (1st column is 1) ");
-		scanf("%d",&col);
-		printf("Enter new value ");
-		scanf("%d",&value);
-		//set new value to given index
-		set_value(n,col,row,value,val,col_indx,row_ptr);
-        //csr_to_csc(n);
-        //print_csr_to_csc(n);
-        //csr_vector_mul(n,val,col_indx,row_ptr);
-        //print_csr_vector_mul(n, ans_vector);
-        //break;
-        //csr_csr_addition(n,val,col_indx,row_ptr,val2,col_indx2,row_ptr2);
-        //scanf("%d",&value);
+
+                begin = clock();
+                csr_vector_mul(n, val, col_indx, row_ptr);
+                end = clock();
+                tot_time_sparse += (double) (end - begin) / CLOCKS_PER_SEC;
+                begin = clock();
+                mat_vector_mul(n, mat, vector);
+                end = clock();
+                tot_time_dense += (double) (end - begin) / CLOCKS_PER_SEC;
+
+                free_memory();
+            }
+            printf("n = %d\t", n);
+            printf("sparse time = %.10lf\t",tot_time_sparse/samples);
+
+            printf("n = %d\t", n);
+            printf("dense time = %.10lf\n",tot_time_dense/samples);
+
+        }
+    }else if(choise == 2){
+        int i, j;
+        double tot_time_sparse = 0, tot_time_dense = 0;
+        printf("******Run Q1. k)******\n");
+        printf("Enter number of samples ");
+        scanf("%d", &samples);
+        for (i = 0; i < 6; i++) {
+            tot_time_sparse = 0;
+            tot_time_dense = 0;
+            for (j = 0; j < samples; j++) {
+                n = sample_sizes[i];
+                /*
+                 * memory allocation
+                 */
+                allocate_memory(n);
+                pre_processing(n, percentage);
+                generate_vector(n, vector);
+
+
+                begin = clock();
+                csr_csr_addition(n,ans_val,ans_col_indx,ans_row_ptr,val2,col_indx2,row_ptr2);
+                csr_vector_mul(n, val, col_indx, row_ptr);
+                end = clock();
+                tot_time_sparse += (double) (end - begin) / CLOCKS_PER_SEC;
+                begin = clock();
+                mat_mat_addition(n,ans_mat,mat2);
+                end = clock();
+                tot_time_dense += (double) (end - begin) / CLOCKS_PER_SEC;
+
+                free_memory();
+            }
+            printf("n = %d\t", n);
+            printf("sparse time = %.10lf\t", tot_time_sparse / samples);
+
+            printf("n = %d\t", n);
+            printf("dense time = %.10lf\n", tot_time_dense / samples);
+        }
+    }else{
+        while(1){
+            int i;
+            printf("******Q1) i******\n");
+            printf("Enter the size of the Matrix ");
+            scanf("%d",&n);
+
+            mat = (int*) calloc(n*n, sizeof(int));
+
+            val = (int*) calloc(n * n, sizeof(int));
+            col_indx = (int*) calloc(n * n, sizeof(int));
+            row_ptr = (int*) malloc((n+1) * sizeof(int));
+
+            val_csc = (int*) calloc(n * n, sizeof(int));
+            row_indx = (int*) calloc(n * n, sizeof(int));
+            col_ptr = (int*) malloc((n+1) * sizeof(int));
+
+            createRandomArray(n,percentage,mat);
+            printf("Convert to CSR format\n");
+            dense_to_csr_convertion(n,mat,val,col_indx,row_ptr);
+            print_dense_to_csr_convertion(n,val,col_indx,row_ptr);
+
+            for(i = 0; i < n; i++){
+                set_value(n,i+1,i+1,2016,val,col_indx,row_ptr);
+            }
+            printf("\nConvert CSR to CSC format\n");
+            csr_to_csc(n,val,col_indx,row_ptr);
+            print_csr_to_csc(n,val,col_indx,row_ptr);
+        }
     }
 }
 
 /*
  * Answer for Q1) d.
  */
-int createRandomArray(int n, int percentage){
+int createRandomArray(int n, int percentage, int* mat){
     int rnd;
     int size = n*n;
-    int i;
-    int nnz = n*n * percentage / 100;
+    int i = 0;
+    int nnz = n*n * (100 - percentage) / 100;
     int row, col;
-    for(i = 0; i < nnz; ){
-        row = random_Number_gen(n);
-        col = random_Number_gen(n);
+    srand(time(NULL));
+    while(i<nnz){
+        row = rand()%n;
+        col = rand()%n;
         if(mat[row*n + col] == 0){
-            rnd = random_Number_gen(99) + 1;
+            rnd = rand()%99 + 1;
+            mat[row*n + col] = rnd;
             i++;
+
         }
     }
     return 0;
@@ -112,7 +192,7 @@ int createRandomArray(int n, int percentage){
 /*
  * Answer for Q1) e
  */
-void dense_to_scr_convertion(int n,int* mat, int* val, int* col_indx, int* row_ptr){
+void dense_to_csr_convertion(int n,int* mat, int* val, int* col_indx, int* row_ptr){
     int i,j;
     int nnz = 0;
     for(i = 0; i < n; i++){
@@ -128,7 +208,7 @@ void dense_to_scr_convertion(int n,int* mat, int* val, int* col_indx, int* row_p
     row_ptr[n] = nnz + 1;
 }
 
-void print_dense_to_scr_convertion(int n, int* val, int* col_indx, int* row_ptr){
+void print_dense_to_csr_convertion(int n, int* val, int* col_indx, int* row_ptr){
     int i;
     printf("Value    : ");
     for(i=0;i<n*n;i++){
@@ -269,7 +349,7 @@ int csr_to_csc(int n, int* val, int* col_indx, int* row_ptr){
 
 void print_csr_to_csc(int n, int* val, int* col_indx, int* row_ptr){
     int i;
-    printf("CSR Value   : ");
+    printf("CSC Value   : ");
     for(i=0;i<n*n;i++){
         if(val[i] != 0)
             printf("%d ",val_csc[i]);
@@ -297,18 +377,18 @@ int csr_vector_mul(int n, int* val, int* col_indx, int* row_ptr){
     int i,j,nnz=0;
     for(i=0; i<n; i++){
         for(j = row_ptr[i]; j < row_ptr[i+1]; j++){
-            ans_vector[i] += val[nnz] * vector[col_indx[nnz] - 1];
+            ans_vector_sparse[i] += val[nnz] * vector[col_indx[nnz] - 1];
             nnz++;
         }
     }
     return 0;
 }
 
-void print_csr_vector_mul(int n, int* ans_vector) {
+void print_csr_vector_mul(int n, int* ans_vector_sparse) {
     int i;
     printf("\nMatrix Vector Multiplication : ");
     for(i=0; i<n ;i++){
-        printf("%d ",ans_vector[i]);
+        printf("%d ",ans_vector_sparse[i]);
     }
     printf("\nDone\n");
 }
@@ -317,34 +397,65 @@ void print_csr_vector_mul(int n, int* ans_vector) {
  * Answer for Q1) k
  */
 int csr_csr_addition(int n, int* val, int* col_indx, int* row_ptr, int* val2, int* col_indx2, int* row_ptr2){
-    int i, j, row1, col, value2,sum;
-    for(i=0;i<n*n;i++){
-        if(i == n*n || val[i] == 0)
-            break;
-        row1 = get_row_index(n,i,row_ptr);
-        col = col_indx[i];
-        value2 = get_value(n,col,row1,val2,col_indx2,row_ptr2);
-        sum = value2 + val[i];
-        set_value(n,col,row1,value2+val[i],val,col_indx,row_ptr);
-        set_value(n,col,row1,0,val2,col_indx2,row_ptr2);
+    int i, col, col2;
+    int nnz1,nnz2,tot_nnz=0;
+    for(i = 0; i<n+1; i++){
+        ans_row_ptr[i] = tot_nnz + 1;
+        nnz1 = row_ptr[i+1] - 1;
+        nnz2 = row_ptr2[i+1] - 1;
+        col = row_ptr[i]-1;
+        col2 = row_ptr2[i]-1;
+        ans_row_ptr[i] = tot_nnz + 1;
+        while(col < nnz1  || col2 < nnz2 ){
 
+            if(col_indx[col] > col_indx2[col2] && col2 < row_ptr2[i+1]-1){
+                ans_val[tot_nnz] = val2[col2];
+                ans_col_indx[tot_nnz] = col_indx2[col2];
+                tot_nnz++;
+                col2++;
+            }else if(col_indx2[col2] > col_indx[col] && col < row_ptr[i+1] -1){
+                ans_val[tot_nnz] = val[col];
+                ans_col_indx[tot_nnz] = col_indx[col];
+                tot_nnz++;
+                col++;
+            }else if(col_indx2[col2] > col_indx[col]){
+                ans_val[tot_nnz] = val2[col2];
+                ans_col_indx[tot_nnz] = col_indx2[col2];
+                tot_nnz++;
+                col2++;
+            }else if(col_indx2[col2] < col_indx[col]){
+                ans_val[tot_nnz] = val[col];
+                ans_col_indx[tot_nnz] = col_indx[col];
+                tot_nnz++;
+                col++;
+            }else if(col_indx2[col2] == col_indx[col] && col2 < row_ptr2[i+1] - 1 || col_indx2[col2] == col_indx[col] && col < row_ptr[i+1] - 1){
+                if(val[col] + val2[col2] != 0){
+                    ans_val[tot_nnz] = val[col] + val2[col2];
+                    ans_col_indx[tot_nnz] = col_indx[col];
+                    tot_nnz++;
+                }
+                col++;
+                col2++;
+            }
+        }
     }
-    print_dense_to_scr_convertion(n,val,col_indx,row_ptr);
+}
 
-    if(val2[0] != 0){
-        for(i=0;i<n*n;i++){
-            if(i == n*n || val2[i] == 0)
-                break;
-            row1 = get_row_index(n,i,row_ptr2);
-            set_value(n,col_indx2[i],row1,val2[i],val,col_indx,row_ptr);
-            //set_value(col_indx2[i],row1,0,val2,col_indx2,row_ptr2);
+int mat_vector_mul(int n, int* mat, int* vec){
+    int i,j,temp;
+    for(i=0; i<n; i++){
+        temp = 0;
+        for(j=0; j<n; j++){
+            temp += mat[i*n + j] * vec[j];
         }
-        for(i=0;i<n*n;i++){
-            if(i == n*n || val2[i] == 0)
-                break;
-            row1 = get_row_index(n,i,row_ptr2);
-            set_value(n,col_indx2[i],row1,0,val2,col_indx2,row_ptr2);
-        }
+        ans_vector_dense[i] = temp;
+    }
+}
+
+int mat_mat_addition(int n, int* mat, int* mat2){
+    int i,j,temp;
+    for(i=0; i<n*n; i++){
+        mat[i] += mat2[i];
     }
 }
 
@@ -360,3 +471,74 @@ int random_Number_gen(int limit){
     srand(time(NULL));
     return (rand()%limit);
 }
+
+void allocate_memory(int n){
+    mat = (int*) calloc(n*n, sizeof(int));
+    mat2 = (int*) calloc(n*n, sizeof(int));
+
+    val = (int*) calloc(n * n, sizeof(int));
+    col_indx = (int*) calloc(n * n, sizeof(int));
+    row_ptr = (int*) malloc((n+1) * sizeof(int));
+
+    val2 = (int*) calloc(n * n, sizeof(int));
+    col_indx2 = (int*) calloc(n * n, sizeof(int));
+    row_ptr2 = (int*) malloc((n+1) * sizeof(int));
+
+    val_csc = (int*) calloc(n * n, sizeof(int));
+    row_indx = (int*) calloc(n * n, sizeof(int));
+    col_ptr = (int*) malloc((n+1) * sizeof(int));
+
+    ans_vector_sparse = (int*) calloc(n,  sizeof(int));
+    ans_vector_dense = (int*) calloc(n,  sizeof(int));
+    ans_mat = (int*) malloc(n*n * sizeof(int));
+
+    ans_val = (int*) calloc(n * n, sizeof(int));
+    ans_col_indx = (int*) calloc(n * n, sizeof(int));
+    ans_row_ptr = (int*) malloc((n+1) * sizeof(int));
+
+    vector = (int*) malloc(n*sizeof(int));
+}
+
+void free_memory(){
+    free(mat);
+    free(mat2);
+
+    free(val);
+    free(col_indx);
+    free(row_ptr);
+
+    free(val2);
+    free(col_indx2);
+    free(row_ptr2);
+
+    free(val_csc);
+    free(row_indx);
+    free(col_ptr);
+
+    free(ans_vector_sparse);
+    free(ans_mat);
+    free(ans_vector_dense);
+
+    free(ans_val);
+    free(ans_col_indx);
+    free(ans_row_ptr);
+
+}
+
+void pre_processing(int n, int percentage){
+    createRandomArray(n, percentage, mat);
+    createRandomArray(n, percentage, mat2);
+    memcpy(ans_mat,mat, n*n*sizeof(int));
+
+    dense_to_csr_convertion(n,mat,val,col_indx,row_ptr);
+    dense_to_csr_convertion(n,mat2,val2,col_indx2,row_ptr2);
+    dense_to_csr_convertion(n,ans_mat,ans_val,ans_col_indx,ans_row_ptr);
+}
+
+void generate_vector(int n, int* vector){
+    int i;
+    for(i = 0; i<0; i++){
+        vector[i] = random_Number_gen(100);
+    }
+}
+
